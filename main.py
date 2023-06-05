@@ -1,9 +1,10 @@
 from datetime import datetime
 from scipy import stats
+from sklearn.metrics import r2_score
+from unidecode import unidecode
 import requests
 import matplotlib.pyplot as plt
 import numpy
-from sklearn.metrics import r2_score
 
 def input_nom_pnom_date():
     sortie = 0
@@ -11,7 +12,11 @@ def input_nom_pnom_date():
     while sortie != 1:
         nom = input("\nSaisissez un nom de famille (Rentrez 0 si vous ne souhaitez pas saisir de nom)\n\nNom : ")
 
+        nom = unidecode(nom.replace(" ", "%20"))
+
         pnom = input("\nSaisissez un prénom (Rentrez 0 si vous ne souhaitez pas saisir de prénom)\n\nPrénom : ")
+
+        pnom = unidecode(pnom)
 
         date = input("\nSaisissez un date de décès (Rentrez 0 si vous ne souhaitez pas saisir de date) - Format jj/mm/aaaa\n\nDate : ")
 
@@ -60,7 +65,7 @@ def input_sexe():
 
 def token():
     token = "INSERER TOKEN"
-
+    
     return token
 
 def lien_api(nom_pnom_date, sexe, nb_page):
@@ -166,13 +171,13 @@ def recherche_nom_pnom_date_sexe():
             return dict_date, None, None, None
 
 def type_aggs():
-    choix_type_aggs = int(input("\nPar quel type d'aggrégation souhaitez-vous classer ces données ?\n1) Par département\n2) Par ville de décès\n3) Par sexe\n4) Par âge de décès\n\nChoix : "))
+    choix_type_aggs = int(input("\nPar quel type d'aggrégation souhaitez-vous classer ces données ?\n1) Par pays de décès\n2) Par ville de décès\n3) Par sexe\n4) Par âge de décès\n\nChoix : "))
 
     while choix_type_aggs not in [1, 2, 3, 4]:
-        choix_type_aggs = int(input("\nERREUR DE SAISIE\n\nPar quel type d'aggrégation souhaitez-vous classer ces données ?\n1) Par département\n2) Par ville de décès\n3) Par sexe\n4) Par âge de décès\n\nChoix : "))
+        choix_type_aggs = int(input("\nERREUR DE SAISIE\n\nPar quel type d'aggrégation souhaitez-vous classer ces données ?\n1) Par pays de décès\n2) Par ville de décès\n3) Par sexe\n4) Par âge de décès\n\nChoix : "))
 
     if choix_type_aggs == 1:
-        return "departmentCode", "Code département"
+        return "deathCountry", "Pays de décès"
     elif choix_type_aggs == 2:
         return "deathCity", "Ville de décès"
     elif choix_type_aggs == 3:
@@ -186,6 +191,8 @@ def recherche_aggs(nom_pnom_date, sexe):
     url_aggs = lien_api_aggs(nom_pnom_date, sexe, choix_type_aggs)
 
     response = requests.get(url_aggs, headers={'Authorization': 'Bearer {}'.format(token())})
+
+    print("\n")
 
     if response.status_code == 200:
         data = response.json()
