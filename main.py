@@ -3,6 +3,7 @@ from scipy import stats
 import requests
 import matplotlib.pyplot as plt
 import numpy
+from sklearn.metrics import r2_score
 
 def input_nom_pnom_date():
     sortie = 0
@@ -44,16 +45,15 @@ def input_sexe():
         choix = int(input("\nERREUR DE SAISIE\n\nVoulez-vous saisir un sexe ?\n1) Oui\n2) Non\n\nChoix : "))
 
     if choix == 1:
-        choix = int(input("\nChoisissez un sexe\n1) F\n2) M\n\nChoix : "))
-        while choix not in [1, 2]:
-            choix = int(input("\nERREUR DE SAISIE\n\nChoisissez un sexe\n1) F\n2) M\n\nChoix : "))
+        choix_sexe = int(input("\nChoisissez un sexe\n1) F\n2) M\n\nChoix : "))
 
-            if choix == 1:
-                sexe = "F"
-            else:
-                sexe = "M"
+        while choix_sexe not in [1, 2]:
+            choix_sexe = int(input("\nERREUR DE SAISIE\n\nChoisissez un sexe\n1) F\n2) M\n\nChoix : "))
 
-            return sexe
+        if choix_sexe == 1:
+            return "F"
+        else:
+            return "M"
 
     else:
         return None
@@ -64,18 +64,18 @@ def token():
     return token
 
 def lien_api(nom_pnom_date, sexe, nb_page):
-    if sexe != None:
-        url = f"https://deces.matchid.io/deces/api/v1/search?q={nom_pnom_date}&sex={sexe}&size=500&page={nb_page}"
-    else:
+    if sexe == None:
         url = f"https://deces.matchid.io/deces/api/v1/search?q={nom_pnom_date}&size=500&page={nb_page}"
+    else:
+        url = f"https://deces.matchid.io/deces/api/v1/search?q={nom_pnom_date}&sexe={sexe}&size=500&page={nb_page}"
 
     return url
 
 def lien_api_aggs(nom_pnom_date, sexe, choix_type_aggs):
-    if sexe != None:
-        url_aggs = f"https://deces.matchid.io/deces/api/v1/agg?q={nom_pnom_date}&sex={sexe}&aggs={choix_type_aggs}"
-    else:
+    if sexe == None:
         url_aggs = f"https://deces.matchid.io/deces/api/v1/agg?q={nom_pnom_date}&aggs={choix_type_aggs}"
+    else:
+        url_aggs = f"https://deces.matchid.io/deces/api/v1/agg?q={nom_pnom_date}&sexe={sexe}&aggs={choix_type_aggs}"
 
     return url_aggs
 
@@ -109,8 +109,6 @@ def recherche_nom_pnom_date_sexe():
     print(url)
 
     response = requests.get(url, headers={'Authorization': 'Bearer {}'.format(token())})
-
-    print("\n")
 
     while response.status_code == 200:
 
@@ -189,7 +187,6 @@ def recherche_aggs(nom_pnom_date, sexe):
 
     response = requests.get(url_aggs, headers={'Authorization': 'Bearer {}'.format(token())})
 
-    print("\n")
     if response.status_code == 200:
         data = response.json()
         results = data["response"]["aggregations"]
@@ -228,13 +225,23 @@ def stat(dict_date, nom_pnom_date, sexe):
 
         mymodel = numpy.poly1d(numpy.polyfit(x, y, 3))
 
-        myline = numpy.linspace(next(iter(dict_date)), list(dict_date.keys())[-1], max(dict_date.values()))
+        if r2_score(y, mymodel(x)) > 0.5:
 
-        plt.scatter(x, y)
-        plt.plot(myline, mymodel(myline))
-        plt.suptitle("Nombre de mort par année")
-        plt.title(f"Pour {nom_pnom_date}, {sexe}")
-        plt.show()
+            myline = numpy.linspace(next(iter(dict_date)), list(dict_date.keys())[-1], max(dict_date.values()))
+
+            plt.scatter(x, y)
+            plt.plot(myline, mymodel(myline))
+            plt.suptitle("Nombre de mort par année")
+            plt.title(f"Pour {nom_pnom_date}, {sexe}")
+            plt.show()
+
+        else:
+            print(f"\nConditions non-réunies pour faire une régression polynomiale : {r}")
+            plt.scatter(x, y)
+            plt.suptitle("Nombre de mort par année")
+            plt.title(f"Pour {nom_pnom_date}, {sexe}")
+            plt.show()
+
 
 
 if __name__ == '__main__':
