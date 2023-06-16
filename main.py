@@ -6,6 +6,8 @@ import requests
 import matplotlib.pyplot as plt
 import numpy
 
+
+"""Fonction input_nom_pnom_date : Demande à l'utilisateur de saisir nom ET/OU prénom ET/OU date de décès """
 def input_nom_pnom_date():
     sortie = 0
 
@@ -43,6 +45,7 @@ def input_nom_pnom_date():
 
     return nom_pnom_date
 
+"""Fonction input_sexe : Demande à l'utilisateur de saisir un sexe"""
 def input_sexe():
     choix = int(input("\nVoulez-vous saisir un sexe ?\n1) Oui\n2) Non\n\nChoix : "))
 
@@ -63,11 +66,14 @@ def input_sexe():
     else:
         return None
 
+
+"""Fonction token : Retourne le token de l'API (solution de le mettre dans un fichier .txt pour récupérer de manière plus sécu le token"""
 def token():
     token = "INSERER TOKEN"
     
     return token
 
+"""Fonction lien_api : Récupère le lien en fonction des variables saisies précédemment"""
 def lien_api(nom_pnom_date, sexe, nb_page):
     if sexe == None:
         url = f"https://deces.matchid.io/deces/api/v1/search?q={nom_pnom_date}&size=500&page={nb_page}"
@@ -76,6 +82,8 @@ def lien_api(nom_pnom_date, sexe, nb_page):
 
     return url
 
+
+"""Fonction lien_api_aggs : Récupère le lien en fonction des variables saisies précédemment avec l'aggrégation"""
 def lien_api_aggs(nom_pnom_date, sexe, choix_type_aggs):
     if sexe == None:
         url_aggs = f"https://deces.matchid.io/deces/api/v1/agg?q={nom_pnom_date}&aggs={choix_type_aggs}"
@@ -84,6 +92,8 @@ def lien_api_aggs(nom_pnom_date, sexe, choix_type_aggs):
 
     return url_aggs
 
+
+"""Fonction date_format : Change le format de la date"""
 def date_format(date_str):
     try:
         date_obj = datetime.strptime(date_str, "%Y%m%d")
@@ -94,6 +104,8 @@ def date_format(date_str):
 
     return date_formatted
 
+
+"""Fonction input_total : Récupère les variables des fonctions input_nom_pnom_date & input_sexe"""
 def input_total():
     nom_pnom_date = input_nom_pnom_date()
 
@@ -101,6 +113,8 @@ def input_total():
 
     return nom_pnom_date, sexe
 
+
+"""Fonction recherche_nom_pnom_date_sexe : Récupère les données sur l'API"""
 def recherche_nom_pnom_date_sexe():
     i=0
 
@@ -170,6 +184,8 @@ def recherche_nom_pnom_date_sexe():
         else:
             return dict_date, None, None, None
 
+
+"""Fonction type_aggs : Demande à l'utilisateur quel type d'aggrégation il souhaite"""
 def type_aggs():
     choix_type_aggs = int(input("\nPar quel type d'aggrégation souhaitez-vous classer ces données ?\n1) Par pays de décès\n2) Par ville de décès\n3) Par sexe\n4) Par âge de décès\n\nChoix : "))
 
@@ -185,14 +201,14 @@ def type_aggs():
     elif choix_type_aggs == 4:
         return "deathAge", "Âge de décès"
 
+
+"""Fonction recherche_aggs : Classe les données par aggrégation"""
 def recherche_aggs(nom_pnom_date, sexe):
     choix_type_aggs, key_affichage = type_aggs()
 
     url_aggs = lien_api_aggs(nom_pnom_date, sexe, choix_type_aggs)
 
     response = requests.get(url_aggs, headers={'Authorization': 'Bearer {}'.format(token())})
-
-    print("\n")
 
     if response.status_code == 200:
         data = response.json()
@@ -201,6 +217,8 @@ def recherche_aggs(nom_pnom_date, sexe):
         for result in results:
             print(f"{key_affichage} : {result['key']} - Nombre : {result['doc_count']}")
 
+
+"""Fonction stat : Permet d'avoir un schéma avec le nombre de personne décédée par année, si les données le permettent une régression linéaire ou polynomiale est affichée"""
 def stat(dict_date, nom_pnom_date, sexe):
     dict_date = {k: dict_date[k] for k in sorted(dict_date.keys())}
 
@@ -250,16 +268,10 @@ def stat(dict_date, nom_pnom_date, sexe):
             plt.show()
 
 
-
+"""Si le script est exécuté sur ce fichier, les fonctions ci-dessous se lancent"""
 if __name__ == '__main__':
     dict_date, choix_aggs, nom_pnom_date, sexe = recherche_nom_pnom_date_sexe()
     if choix_aggs != None:
         recherche_aggs(nom_pnom_date, sexe)
 
     stat(dict_date, nom_pnom_date, sexe)
-
-
-"""
-- Recherche exacte nom, prénom
-- Mettre Token dans fichier .txt
-"""
