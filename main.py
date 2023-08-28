@@ -154,7 +154,7 @@ def recherche_nom_pnom_date_sexe():
                         dict_date[date_annee] += 1
 
                 """ TRAITEMENT DE FICHIER .TXT
-                chemin_fichier = "C:\\Users\\Asus\\Documents\\deces\\deces.txt"
+                chemin_fichier = "INSERER CHEMIN\\deces.txt"
 
                 with open(chemin_fichier, "a") as f:
                     f.write(f"\n[[{result['name']['last']}][{result['name']['first'][0]}][{date_formatted}]]")
